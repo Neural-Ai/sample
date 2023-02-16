@@ -89,3 +89,64 @@ macd = MovingAverage(fast_period=12, slow_period=26, ema_alpha=0.9)
 for val in data:
     macd.calculate_ma([val])
     print(f"MACD: {macd.get_macd()}")
+
+
+
+
+import pandas as pd
+from openpyxl import Workbook
+
+data = [10, 20, 30, 40, 50, 60, 70, 80, 90, 100]
+
+# Calculate simple moving averages for fast and slow periods
+ma = MovingAverage(fast_period=3, slow_period=5)
+fast_ma = []
+slow_ma = []
+for val in data:
+    ma.calculate_ma([val])
+    fast_ma.append(ma.get_fast_ma())
+    slow_ma.append(ma.get_slow_ma())
+
+# Calculate weighted moving average with custom weights
+wma = MovingAverage(fast_period=3, slow_period=5, fast_weight=[1, 2, 3], slow_weight=[1, 2, 3, 4, 5])
+weighted_ma = []
+for val in data:
+    wma.calculate_ma([val])
+    weighted_ma.append(wma.get_wma())
+
+# Calculate exponential moving average with custom smoothing factor
+ema = MovingAverage(fast_period=3, slow_period=5, ema_alpha=0.5)
+exp_ma = []
+for val in data:
+    ema.calculate_ma([val])
+    exp_ma.append(ema.get_ema())
+
+# Calculate MACD indicator with default values
+macd = MovingAverage(fast_period=12, slow_period=26, ema_alpha=0.9)
+macd_values = []
+for val in data:
+    macd.calculate_ma([val])
+    macd_values.append(macd.get_macd())
+
+# Create an Excel writer object and write the results to different sheets
+with pd.ExcelWriter('moving_averages.xlsx', engine='openpyxl') as writer:
+    # Try to open an existing workbook
+    try:
+        writer.book = openpyxl.load_workbook('moving_averages.xlsx')
+    except:
+        # Create a new workbook if the file does not exist
+        writer.book = Workbook()
+
+    df1 = pd.DataFrame({'Fast MA': fast_ma, 'Slow MA': slow_ma})
+    df1.to_excel(writer, sheet_name='Simple MA')
+
+    df2 = pd.DataFrame({'Weighted MA': weighted_ma})
+    df2.to_excel(writer, sheet_name='Weighted MA')
+
+    df3 = pd.DataFrame({'Exponential MA': exp_ma})
+    df3.to_excel(writer, sheet_name='Exponential MA')
+
+    df4 = pd.DataFrame({'MACD': macd_values})
+    df4.to_excel(writer, sheet_name='MACD')
+
+    writer.save()
