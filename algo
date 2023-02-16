@@ -122,3 +122,53 @@ with pd.ExcelWriter('moving_averages.xlsx', engine='openpyxl') as writer:
     df4.to_excel(writer, sheet_name='MACD')
 
     writer.save()
+
+
+
+def calculate_moving_averages(data):
+    # Calculate simple moving averages for fast and slow periods
+    ma = MovingAverage(fast_period=3, slow_period=5)
+    fast_ma = []
+    slow_ma = []
+    for val in data:
+        ma.calculate_ma([val])
+        fast_ma.append(ma.get_fast_ma())
+        slow_ma.append(ma.get_slow_ma())
+
+    # Calculate weighted moving average with custom weights
+    wma = MovingAverage(fast_period=3, slow_period=5, fast_weight=[1, 2, 3], slow_weight=[1, 2, 3, 4, 5])
+    weighted_ma = []
+    for val in data:
+        wma.calculate_ma([val])
+        weighted_ma.append(wma.get_wma())
+
+    # Calculate exponential moving average with custom alpha value
+    ema = MovingAverage(fast_period=3, slow_period=5, ema_alpha=0.8)
+    ema_values = []
+    for val in data:
+        ema.calculate_ma([val])
+        ema_values.append(ema.get_ema())
+
+    # Calculate MACD with exponential moving averages
+    macd = MovingAverage(fast_period=3, slow_period=5, ema_alpha=0.8)
+    macd_values = []
+    for val in data:
+        macd.calculate_ma([val])
+        macd_values.append(macd.get_macd())
+
+    # Create Excel workbook and write data to different sheets
+    wb = Workbook()
+    ws_fast_ma = wb.create_sheet("Fast Moving Average")
+    ws_slow_ma = wb.create_sheet("Slow Moving Average")
+    ws_weighted_ma = wb.create_sheet("Weighted Moving Average")
+    ws_ema = wb.create_sheet("Exponential Moving Average")
+    ws_macd = wb.create_sheet("MACD")
+
+    ws_fast_ma.append(fast_ma)
+    ws_slow_ma.append(slow_ma)
+    ws_weighted_ma.append(weighted_ma)
+    ws_ema.append(ema_values)
+    ws_macd.append(macd_values)
+
+    # Save the Excel file
+    wb.save("moving_averages.xlsx")
