@@ -64,34 +64,6 @@ class MovingAverage:
 
 
 
-data = [10, 20, 30, 40, 50, 60, 70, 80, 90, 100]
-
-# Calculate simple moving averages for fast and slow periods
-ma = MovingAverage(fast_period=3, slow_period=5)
-for val in data:
-    ma.calculate_ma([val])
-    print(f"Fast MA: {ma.get_fast_ma()}, Slow MA: {ma.get_slow_ma()}")
-
-# Calculate weighted moving average with custom weights
-wma = MovingAverage(fast_period=3, slow_period=5, fast_weight=[1, 2, 3], slow_weight=[1, 2, 3, 4, 5])
-for val in data:
-    wma.calculate_ma([val])
-    print(f"WMA: {wma.get_wma()}")
-
-# Calculate exponential moving average with custom smoothing factor
-ema = MovingAverage(fast_period=3, slow_period=5, ema_alpha=0.5)
-for val in data:
-    ema.calculate_ma([val])
-    print(f"EMA: {ema.get_ema()}")
-
-# Calculate MACD indicator with default values
-macd = MovingAverage(fast_period=12, slow_period=26, ema_alpha=0.9)
-for val in data:
-    macd.calculate_ma([val])
-    print(f"MACD: {macd.get_macd()}")
-
-
-
 
 import pandas as pd
 from openpyxl import Workbook
