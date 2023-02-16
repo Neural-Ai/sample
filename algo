@@ -172,3 +172,46 @@ def calculate_moving_averages(data):
 
     # Save the Excel file
     wb.save("moving_averages.xlsx")
+    
+from openpyxl import Workbook
+
+def analyze_trends(data, file_path):
+    # Calculate simple moving averages for fast and slow periods
+    ma = MovingAverage(fast_period=3, slow_period=5)
+    fast_ma = []
+    slow_ma = []
+    for val in data:
+        ma.calculate_ma([val])
+        fast_ma.append(ma.get_fast_ma())
+        slow_ma.append(ma.get_slow_ma())
+
+    # Find trend direction based on the relationship between the fast and slow moving averages
+    trend = []
+    for i in range(1, len(data)):
+        if fast_ma[i] > slow_ma[i]:
+            trend.append("Upward trend")
+        elif fast_ma[i] < slow_ma[i]:
+            trend.append("Downward trend")
+        else:
+            trend.append("No trend")
+
+    # Save the data and moving averages to an Excel file
+    wb = Workbook()
+    ws_data = wb.active
+    ws_data.title = "Data"
+    ws_data.append(["Data", "Trend"])
+    for i in range(len(data) - 1):
+        ws_data.append([data[i], trend[i]])
+
+    ws_fast_ma = wb.create_sheet(title="Fast Moving Average")
+    ws_fast_ma.append(["Fast Moving Average"])
+    for val in fast_ma:
+        ws_fast_ma.append([val])
+
+    ws_slow_ma = wb.create_sheet(title="Slow Moving Average")
+    ws_slow_ma.append(["Slow Moving Average"])
+    for val in slow_ma:
+        ws_slow_ma.append([val])
+
+    # Save the Excel file
+    wb.save(file_path)
