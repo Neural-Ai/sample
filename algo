@@ -1,0 +1,91 @@
+import numpy as np
+
+class MovingAverage:
+    def __init__(self, fast_period, slow_period, fast_weight=None, slow_weight=None, ema_alpha=None):
+        self.fast_period = fast_period
+        self.slow_period = slow_period
+        self.fast_weight = fast_weight
+        self.slow_weight = slow_weight
+        self.ema_alpha = ema_alpha
+        self.fast_ma = []
+        self.slow_ma = []
+        self.wma = []
+        self.ema = []
+        self.macd = []
+
+    def calculate_ma(self, data):
+        # Calculate simple moving averages
+        if len(self.fast_ma) < self.fast_period:
+            self.fast_ma.append(sum(data[-self.fast_period:]) / self.fast_period)
+        else:
+            self.fast_ma.append((self.fast_ma[-1] * (self.fast_period - 1) + data[-1]) / self.fast_period)
+
+        if len(self.slow_ma) < self.slow_period:
+            self.slow_ma.append(sum(data[-self.slow_period:]) / self.slow_period)
+        else:
+            self.slow_ma.append((self.slow_ma[-1] * (self.slow_period - 1) + data[-1]) / self.slow_period)
+
+        # Calculate weighted moving average
+        if self.fast_weight and self.slow_weight:
+            if len(self.wma) < self.slow_period:
+                self.wma.append(np.average(data[-self.slow_period:], weights=self.slow_weight))
+            else:
+                self.wma.append((self.wma[-1] * (self.slow_period - 1) + data[-1] * self.fast_weight) / sum(self.fast_weight))
+
+        # Calculate exponential moving average
+        if self.ema_alpha:
+            if len(self.ema) == 0:
+                self.ema.append(data[-1])
+            else:
+                self.ema.append(self.ema_alpha * data[-1] + (1 - self.ema_alpha) * self.ema[-1])
+
+        # Calculate MACD indicator
+        if len(self.ema) >= 2:
+            macd_line = self.ema[-1] - self.ema[-2]
+            if len(self.macd) == 0:
+                self.macd.append(macd_line)
+            else:
+                self.macd.append((macd_line + 2 * self.macd[-1]) / 3)
+
+    def get_fast_ma(self):
+        return self.fast_ma[-1]
+
+    def get_slow_ma(self):
+        return self.slow_ma[-1]
+
+    def get_wma(self):
+        return self.wma[-1]
+
+    def get_ema(self):
+        return self.ema[-1]
+
+    def get_macd(self):
+        return self.macd[-1]
+
+
+
+data = [10, 20, 30, 40, 50, 60, 70, 80, 90, 100]
+
+# Calculate simple moving averages for fast and slow periods
+ma = MovingAverage(fast_period=3, slow_period=5)
+for val in data:
+    ma.calculate_ma([val])
+    print(f"Fast MA: {ma.get_fast_ma()}, Slow MA: {ma.get_slow_ma()}")
+
+# Calculate weighted moving average with custom weights
+wma = MovingAverage(fast_period=3, slow_period=5, fast_weight=[1, 2, 3], slow_weight=[1, 2, 3, 4, 5])
+for val in data:
+    wma.calculate_ma([val])
+    print(f"WMA: {wma.get_wma()}")
+
+# Calculate exponential moving average with custom smoothing factor
+ema = MovingAverage(fast_period=3, slow_period=5, ema_alpha=0.5)
+for val in data:
+    ema.calculate_ma([val])
+    print(f"EMA: {ema.get_ema()}")
+
+# Calculate MACD indicator with default values
+macd = MovingAverage(fast_period=12, slow_period=26, ema_alpha=0.9)
+for val in data:
+    macd.calculate_ma([val])
+    print(f"MACD: {macd.get_macd()}")
