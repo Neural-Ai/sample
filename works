@@ -1,0 +1,5 @@
+# Bind Home key to move cursor to beginning of line
+set -o emacs
+alias __A=`echo "\033[1~"`
+# Bind End key to move cursor to end of line
+alias __E=`echo "\033[4~"`
