@@ -145,3 +145,85 @@ class ActionShowNextResults(Action):
         dispatcher.utter_message(text=message)
 
         return []
+#######################################
+#domain.yml
+
+intents:
+- greet
+- goodbye
+- inform
+- query_results
+- next_results
+
+entities:
+- account_number
+- place
+
+slots:
+  account_number:
+    type: text
+  place:
+    type: text
+  query_results:
+    type: list
+  result_index:
+    type: int
+
+responses:
+  utter_greet:
+  - text: "Hello! How can I assist you?"
+  
+  utter_goodbye:
+  - text: "Goodbye! Have a nice day."
+
+  utter_ask_account_number:
+  - text: "Please provide your account number."
+
+  utter_ask_place:
+  - text: "Which place are you looking for?"
+  
+  utter_confirm_place:
+  - text: "Did you mean {place}?"
+  
+  utter_query_results:
+  - text: "Here are the top 10 results:\n{query_results}"
+
+  utter_no_results:
+  - text: "Sorry, no results found."
+  
+  utter_ask_next_results:
+  - text: "Do you want to see the next 10 results?"
+  
+  utter_show_next_results:
+  - text: "{query_results}"
+  
+actions:
+- action_ask_account_number
+- action_ask_place
+- action_confirm_place
+- action_run_sql_query
+- action_show_results
+- action_show_next_results
+- action_reset_results
+
+templates:
+  utter_ask_account_number:
+    - text: "Please provide your account number."
+    
+  utter_ask_place:
+    - text: "Which place are you looking for?"
+    
+  utter_confirm_place:
+    - text: "Did you mean {place}?"
+  
+  utter_query_results:
+    - text: "Here are the top 10 results:\n{query_results}"
+    
+  utter_no_results:
+    - text: "Sorry, no results found."
+  
+  utter_ask_next_results:
+    - text: "Do you want to see the next 10 results?"
+  
+  utter_show_next_results:
+    - text: "{query_results}"
