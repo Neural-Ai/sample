@@ -2,9 +2,9 @@
 <html>
   <head>
     <meta charset="UTF-8">
-    <title>Pop-up Chat Widget Example</title>
+    <title>Rasa Chat Widget Example</title>
     <style>
-      #chatWidget {
+      #rasa-chat-container {
         position: fixed;
         bottom: 20px;
         right: 20px;
@@ -18,15 +18,15 @@
         cursor: pointer;
         transition: all 0.3s ease-in-out;
       }
-      #chatWidget:hover {
+      #rasa-chat-container:hover {
         background-color: #303f9f;
       }
-      #chatPopup {
+      #rasa-chat-wrapper {
         position: fixed;
         bottom: 20px;
         right: 20px;
-        width: 300px;
-        height: 400px;
+        width: 350px;
+        height: 450px;
         background-color: #fff;
         box-shadow: 0 0 10px rgba(0, 0, 0, 0.5);
         border-radius: 8px;
@@ -34,10 +34,10 @@
         transition: all 0.3s ease-in-out;
         transform: translate(100%, 0);
       }
-      #chatPopup.show {
+      #rasa-chat-wrapper.show {
         transform: translate(0, 0);
       }
-      #chatPopupHeader {
+      #rasa-chat-header {
         background-color: #3f51b5;
         color: #fff;
         font-size: 1.5em;
@@ -45,11 +45,10 @@
         padding: 10px;
         margin-bottom: 10px;
       }
-      #chatPopupContent {
+      #rasa-chat-widget {
         height: calc(100% - 70px);
-        padding: 10px;
       }
-      #chatPopupClose {
+      #rasa-chat-close {
         position: absolute;
         top: 5px;
         right: 5px;
@@ -60,31 +59,29 @@
     </style>
   </head>
   <body>
-    <div id="chatWidget">
+    <div id="rasa-chat-container">
       <span>&times;</span>
     </div>
 
-    <div id="chatPopup">
-      <div id="chatPopupHeader">Chat Widget</div>
-      <div id="chatPopupClose">&times;</div>
-      <div id="chatPopupContent">
-        <!-- Your chat widget code goes here -->
-        <p>This is a pop-up chat widget.</p>
-        <p>Click the X icon to close it.</p>
-      </div>
+    <div id="rasa-chat-wrapper">
+      <div id="rasa-chat-header">Chat Widget</div>
+      <div id="rasa-chat-widget" data-websocket-url="https://your-rasa-url-here/"></div>
+      <div id="rasa-chat-close">&times;</div>
     </div>
 
-    <script>
-      var chatWidget = document.getElementById("chatWidget");
-      var chatPopup = document.getElementById("chatPopup");
-      var chatPopupClose = document.getElementById("chatPopupClose");
+    <script src="https://unpkg.com/@rasahq/rasa-chat" type="application/javascript"></script>
 
-      chatWidget.addEventListener("click", function() {
-        chatPopup.classList.add("show");
+    <script>
+      var rasaChatContainer = document.getElementById("rasa-chat-container");
+      var rasaChatWrapper = document.getElementById("rasa-chat-wrapper");
+      var rasaChatClose = document.getElementById("rasa-chat-close");
+
+      rasaChatContainer.addEventListener("click", function() {
+        rasaChatWrapper.classList.add("show");
       });
 
-      chatPopupClose.addEventListener("click", function() {
-        chatPopup.classList.remove("show");
+      rasaChatClose.addEventListener("click", function() {
+        rasaChatWrapper.classList.remove("show");
       });
     </script>
   </body>
