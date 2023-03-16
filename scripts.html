@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="UTF-8">
+    <title>Full-Screen Div on Double Click</title>
+    <style>
+      #myDiv {
+        width: 100%;
+        height: 100%;
+        background-color: #333;
+        color: #fff;
+        font-size: 2em;
+        text-align: center;
+        padding-top: 50px;
+      }
+    </style>
+  </head>
+  <body>
+    <div id="myDiv">Double click to make me full-screen</div>
+
+    <script>
+      var elem = document.getElementById("myDiv");
+
+      elem.addEventListener("dblclick", function() {
+        if (document.fullscreenElement) {
+          document.exitFullscreen();
+        } else {
+          elem.requestFullscreen();
+        }
+      });
+    </script>
+  </body>
+</html>
