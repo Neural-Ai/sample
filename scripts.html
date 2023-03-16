@@ -2,30 +2,69 @@
 <html>
   <head>
     <meta charset="UTF-8">
-    <title>Full-Screen Div on Double Click</title>
+    <title>Resizable Div with Full-Screen Toggle Button</title>
     <style>
       #myDiv {
-        width: 100%;
-        height: 100%;
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        width: 400px;
+        height: 300px;
         background-color: #333;
         color: #fff;
         font-size: 2em;
         text-align: center;
         padding-top: 50px;
       }
+      #toggleButton {
+        position: absolute;
+        top: 10px;
+        right: 10px;
+        background-color: #fff;
+        color: #333;
+        border: none;
+        border-radius: 4px;
+        padding: 8px;
+        font-size: 1em;
+        cursor: pointer;
+      }
+      #toggleButton.fullscreen {
+        background-color: #333;
+        color: #fff;
+      }
+      #toggleButton.fullscreen:before {
+        content: "\219d";
+      }
     </style>
   </head>
   <body>
-    <div id="myDiv">Double click to make me full-screen</div>
+    <div id="myDiv">
+      <button id="toggleButton">Expand</button>
+      Double-click to toggle full-screen mode
+    </div>
 
     <script>
       var elem = document.getElementById("myDiv");
+      var toggleButton = document.getElementById("toggleButton");
 
-      elem.addEventListener("dblclick", function() {
-        if (document.fullscreenElement) {
+      toggleButton.addEventListener("click", function() {
+        if (elem.classList.contains("fullscreen")) {
           document.exitFullscreen();
         } else {
           elem.requestFullscreen();
+        }
+      });
+
+      document.addEventListener("fullscreenchange", function() {
+        if (document.fullscreenElement === elem) {
+          elem.classList.add("fullscreen");
+          toggleButton.textContent = "Shrink";
+          toggleButton.classList.add("fullscreen");
+        } else {
+          elem.classList.remove("fullscreen");
+          toggleButton.textContent = "Expand";
+          toggleButton.classList.remove("fullscreen");
         }
       });
     </script>
