@@ -2,31 +2,90 @@
 <html>
   <head>
     <meta charset="UTF-8">
-    <title>Rasa Chat Widget Example</title>
-    <script src="https://cdn.jsdelivr.net/npm/rasa-webchat/lib/index.js"></script>
+    <title>Pop-up Chat Widget Example</title>
     <style>
-      #webchat {
-        height: 500px;
-        width: 500px;
+      #chatWidget {
+        position: fixed;
+        bottom: 20px;
+        right: 20px;
+        width: 50px;
+        height: 50px;
+        background-color: #3f51b5;
+        border-radius: 50%;
+        color: #fff;
+        font-size: 2em;
+        text-align: center;
+        cursor: pointer;
+        transition: all 0.3s ease-in-out;
+      }
+      #chatWidget:hover {
+        background-color: #303f9f;
+      }
+      #chatPopup {
+        position: fixed;
+        bottom: 20px;
+        right: 20px;
+        width: 300px;
+        height: 400px;
+        background-color: #fff;
+        box-shadow: 0 0 10px rgba(0, 0, 0, 0.5);
+        border-radius: 8px;
+        overflow: hidden;
+        transition: all 0.3s ease-in-out;
+        transform: translate(100%, 0);
+      }
+      #chatPopup.show {
+        transform: translate(0, 0);
+      }
+      #chatPopupHeader {
+        background-color: #3f51b5;
+        color: #fff;
+        font-size: 1.5em;
+        text-align: center;
+        padding: 10px;
+        margin-bottom: 10px;
+      }
+      #chatPopupContent {
+        height: calc(100% - 70px);
+        padding: 10px;
+      }
+      #chatPopupClose {
+        position: absolute;
+        top: 5px;
+        right: 5px;
+        font-size: 1.5em;
+        color: #fff;
+        cursor: pointer;
       }
     </style>
   </head>
   <body>
-    <div id="webchat"></div>
+    <div id="chatWidget">
+      <span>&times;</span>
+    </div>
+
+    <div id="chatPopup">
+      <div id="chatPopupHeader">Chat Widget</div>
+      <div id="chatPopupClose">&times;</div>
+      <div id="chatPopupContent">
+        <!-- Your chat widget code goes here -->
+        <p>This is a pop-up chat widget.</p>
+        <p>Click the X icon to close it.</p>
+      </div>
+    </div>
 
     <script>
-      WebChat.default.init({
-        selector: "#webchat",
-        initPayload: "/get_started",
-        customData: { "language": "en" },
-        socketUrl: "http://localhost:5005",
-        socketPath: "/socket.io/",
-        title: "My Chatbot",
-        subtitle: "powered by Rasa",
-        params: { token: "my_custom_token" },
-        openLauncherImage: "my_custom_image.png",
-        closeLauncherImage: "my_custom_image.png",
-      })
+      var chatWidget = document.getElementById("chatWidget");
+      var chatPopup = document.getElementById("chatPopup");
+      var chatPopupClose = document.getElementById("chatPopupClose");
+
+      chatWidget.addEventListener("click", function() {
+        chatPopup.classList.add("show");
+      });
+
+      chatPopupClose.addEventListener("click", function() {
+        chatPopup.classList.remove("show");
+      });
     </script>
   </body>
 </html>
