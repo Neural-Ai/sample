@@ -1,10 +1,59 @@
-<div id="my-div">
-	<h1>Welcome to my website!</h1>
-	<p>Here is some content for you to enjoy:</p>
-	<ul>
-		<li>Item 1</li>
-		<li>Item 2</li>
-		<li>Item 3</li>
-	</ul>
-	<p>If you have any questions or comments, please contact us <a href="mailto:contact@example.com">here</a>.</p>
+<div class="table">
+  <div class="header row">
+    <div class="cell">Student</div>
+    <div class="cell">Name</div>
+    <div class="cell">Rank</div>
+  </div>
+  <div class="row">
+    <div class="cell">1</div>
+    <div class="cell">John Doe</div>
+    <div class="cell">1st</div>
+  </div>
+  <div class="row">
+    <div class="cell">2</div>
+    <div class="cell">Jane Smith</div>
+    <div class="cell">2nd</div>
+  </div>
+  <div class="row">
+    <div class="cell">3</div>
+    <div class="cell">Bob Johnson</div>
+    <div class="cell">3rd</div>
+  </div>
+  <div class="row">
+    <div class="cell">4</div>
+    <div class="cell">Samantha Lee</div>
+    <div class="cell">4th</div>
+  </div>
+  <div class="row">
+    <div class="cell">5</div>
+    <div class="cell">Mike Brown</div>
+    <div class="cell">5th</div>
+  </div>
 </div>
+
+
+<style>
+.table {
+  display: table;
+  border-collapse: collapse;
+  width: 100%;
+  max-width: 800px;
+  margin: 0 auto;
+}
+
+.row {
+  display: table-row;
+}
+
+.cell {
+  display: table-cell;
+  border: 1px solid #ddd;
+  padding: 8px;
+}
+
+.header {
+  font-weight: bold;
+  background-color: #f2f2f2;
+}
+
+</style>
