@@ -1,0 +1,28 @@
+# Example list of date strings
+dates = ['2023-Jan', '2022-Dec', '2023-Feb', '2022-Nov']
+
+# Custom key function to extract the month as a number
+def get_month_number(date_string):
+    month_map = {
+        'Jan': 1,
+        'Feb': 2,
+        'Mar': 3,
+        'Apr': 4,
+        'May': 5,
+        'Jun': 6,
+        'Jul': 7,
+        'Aug': 8,
+        'Sep': 9,
+        'Oct': 10,
+        'Nov': 11,
+        'Dec': 12
+    }
+    year, month = date_string.split('-')
+    return int(year), month_map[month]
+
+# Sort the dates
+sorted_dates = sorted(dates, key=get_month_number)
+
+# Print the sorted dates
+for date in sorted_dates:
+    print(date)
