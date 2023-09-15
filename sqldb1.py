@@ -21,9 +21,31 @@ for sheet_name in excel_file.sheet_names:
 
 # Close the SQLite database connection
 conn.close()
-In this modified code, we open the SQLite database connection before iterating through the sheet names and save each sheet as a separate table in the same SQLite database. Finally, we close the connection when we're done saving all the sheets.
 
-Now, all the sheets will be stored as individual tables within the same SQLite database file specified in 'your_database.db'.
+
+
+import sqlite3
+
+# Open the SQLite database connection
+conn = sqlite3.connect('your_database.db')  # Replace 'your_database.db' with your database file name
+
+# Create a cursor to execute SQL commands
+cursor = conn.cursor()
+
+# Define your SQL query
+sql_query = "SELECT * FROM your_table_name"  # Replace 'your_table_name' with the actual table name you want to query
+
+# Execute the query
+cursor.execute(sql_query)
+
+# Fetch and print the query result (for example, fetch the first 5 rows)
+result = cursor.fetchmany(5)
+for row in result:
+    print(row)
+
+# Close the cursor and the database connection
+cursor.close()
+conn.close()
 
 
 
