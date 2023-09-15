@@ -49,5 +49,8 @@ conn.close()
 
 
 
+#sql_query = "SELECT name FROM sqlite_master WHERE type='table';"
+
+
 
 
