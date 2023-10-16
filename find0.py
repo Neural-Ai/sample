@@ -12,7 +12,7 @@ data = {
 df = pd.DataFrame(data)
 
 # Sum the counts for each alert across all months
-df['Total'] = df.sum(axis=1)
+df['Total'] = df.drop('Alert Name', axis=1).sum(axis=1)
 
 # Filter alerts with a total count of 0
 zero_count_alerts = df[df['Total'] == 0]
