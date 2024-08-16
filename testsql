@@ -1,0 +1,179 @@
+WITH numbers AS (
+    SELECT TOP (DATEDIFF(MONTH, '2007-01-01', '2024-06-01') + 1)
+    ROW_NUMBER() OVER (ORDER BY (SELECT NULL)) - 1 AS n
+    FROM master..spt_values -- Use a system table or a dedicated numbers table
+)
+, months AS (
+    SELECT 
+        CONVERT(VARCHAR(10), DATEADD(MONTH, n, '2007-01-01'), 120) AS dt
+    FROM 
+        numbers
+)
+
+
+
+
+
+
+
+
+-- Step 1: Generate a sequence of months using a tally or numbers table
+WITH numbers AS (
+    SELECT TOP (DATEDIFF(MONTH, '2007-01-01', '2024-06-01') + 1)
+    ROW_NUMBER() OVER (ORDER BY (SELECT NULL)) - 1 AS n
+    FROM master..spt_values -- Use a system table or a dedicated numbers table
+)
+, months AS (
+    SELECT 
+        DATEADD(MONTH, n, '2007-01-01') AS dt
+    FROM 
+        numbers
+)
+-- Step 2: Filter alerts and calculate first day of the month for each alert
+, ALT AS (
+    SELECT
+        a.alert_id,
+        a.alert_date,
+        DATEFROMPARTS(YEAR(a.alert_date), MONTH(a.alert_date), 1) AS month_date,
+        t.name AS alert_type,
+        t.short_name,
+        t.alert_type_identifier AS alert_type_id
+    FROM 
+        dbo.alerts a
+    JOIN 
+        dbo.acm_md_alert_types t ON a.alert_type_internal_id = t.alert_type_internal_id
+    WHERE 
+        a.alert_date BETWEEN '2007-01-01' AND '2024-06-01'
+        AND a.deleted = 0
+        AND UPPER(t.name) NOT LIKE 'ADHOC%'
+        AND UPPER(t.name) NOT LIKE 'AD HOC%'
+        AND UPPER(t.name) NOT LIKE 'SCHEDULED ALERT%'
+)
+-- Step 3: Calculate min and max alert dates for each type
+, maxmin AS (
+    SELECT
+        alt.alert_type_id,
+        MIN(alt.alert_date) AS first_alert,
+        MAX(alt.alert_date) AS last_alert
+    FROM 
+        ALT alt
+    GROUP BY 
+        alt.alert_type_id
+)
+-- Step 4: Generate all combinations of months and alert types
+, alert_type_month AS (
+    SELECT 
+        m.dt,
+        DISTINCT alt.alert_type_id
+    FROM 
+        months m
+    CROSS JOIN 
+        (SELECT DISTINCT alert_type_id FROM ALT) alt
+)
+-- Step 5: Count alerts per month for each alert type
+, alert_type_month_count AS (
+    SELECT 
+        atm.dt,
+        atm.alert_type_id,
+        COUNT(alt.alert_id) AS cnt
+    FROM 
+        alert_type_month atm
+    LEFT JOIN 
+        ALT alt ON atm.dt = alt.month_date AND atm.alert_type_id = alt.alert_type_id
+    GROUP BY 
+        atm.dt, atm.alert_type_id
+)
+-- Step 6: Calculate non-zero average per alert type
+, non_zero_avg AS (
+    SELECT
+        AVG(NULLIF(cnt, 0)) AS non_zero_avg,
+        atm.alert_type_id
+    FROM 
+        alert_type_month_count atm
+    GROUP BY 
+        atm.alert_type_id
+)
+-- Step 7: Identify alert types with zero alerts in the most recent month
+, most_recent_is_zero AS (
+    SELECT
+        alert_type_id
+    FROM 
+        alert_type_month_count
+    WHERE 
+        dt = '2024-06-01'
+        AND cnt = 0
+)
+-- Step 8: Find the last non-zero month for alert types that had zero alerts recently
+, last_nonzero AS (
+    SELECT
+        z.alert_type_id,
+        MAX(c.dt) AS last_nonzero_month
+    FROM 
+        most_recent_is_zero z
+    LEFT JOIN 
+        alert_type_month_count c ON z.alert_type_id = c.alert_type_id AND c.dt < '2024-06-01' AND c.cnt > 0
+    GROUP BY 
+        z.alert_type_id
+)
+-- Step 9: Calculate the number of consecutive months with zero alerts
+, num_months_zero AS (
+    SELECT
+        z.alert_type_id,
+        DATEDIFF(MONTH, z.last_nonzero_month, '2024-06-01') AS num_months_with_zero,
+        z.last_nonzero_month
+    FROM 
+        last_nonzero z
+)
+-- Step 10: Identify alert types with multiple frequencies
+, mul_types AS (
+    SELECT 
+        mat.alert_type_identifier
+    FROM 
+        spapp.ms_alert_types mat
+    GROUP BY 
+        mat.alert_type_identifier
+    HAVING 
+        COUNT(DISTINCT mat.frequency) > 1
+)
+-- Step 11: Determine frequency of each alert type
+, freq AS (
+    SELECT 
+        DISTINCT mat.alert_type_identifier,
+        CASE 
+            WHEN mat.alert_type_identifier IN (SELECT alert_type_identifier FROM mul_types) 
+            THEN 'MULTIPLE'
+            ELSE mat.frequency
+        END AS frequency
+    FROM 
+        spapp.ms_alert_types mat
+)
+-- Final step: Select the output with all the combined data
+SELECT
+    cnn.dt AS [Date],
+    t.name AS alert_type,
+    t.short_name,
+    alt.alert_type_id,
+    f.frequency,
+    nm.num_months_with_zero,
+    FORMAT(nm.last_nonzero_month, 'yyyy-MMM') AS last_nonzero_month,
+    mm.first_alert,
+    mm.last_alert AS most_recent_alert_date,
+    non_zero_avg.non_zero_avg AS non_zero_avg,
+    cnn.cnt AS [Count]
+FROM 
+    ALT alt
+JOIN 
+    dbo.acm_md_alert_types t ON alt.short_name = t.short_name
+LEFT JOIN 
+    num_months_zero nm ON alt.alert_type_id = nm.alert_type_id
+LEFT JOIN 
+    most_recent_is_zero mr ON alt.alert_type_id = mr.alert_type_id
+JOIN 
+    maxmin mm ON alt.alert_type_id = mm.alert_type_id
+JOIN 
+    freq f ON CONVERT(VARCHAR, alt.alert_type_id) = f.alert_type_identifier
+JOIN 
+    non_zero_avg ON alt.alert_type_id = non_zero_avg.alert_type_id
+JOIN 
+    alert_type_month_count cnn ON alt.alert_type_id = cnn.alert_type_id
+OPTION (MAXRECURSION 0);  -- Recursion limit not needed since we avoid it in generating months
