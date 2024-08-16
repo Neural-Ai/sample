@@ -112,3 +112,130 @@ LEFT JOIN
     (SELECT DISTINCT alert_type_internal_id, frequency FROM spapp.ms_alert_types) f 
     ON mm.alert_type_id = f.alert_type_internal_id
 OPTION (MAXRECURSION 0);
+
+
+
+
+
+
+-------------
+
+
+WITH numbers AS (
+    SELECT TOP (DATEDIFF(MONTH, '2007-01-01', '2024-06-01') + 1)
+    ROW_NUMBER() OVER (ORDER BY (SELECT NULL)) - 1 AS n
+    FROM master..spt_values
+)
+, months AS (
+    SELECT 
+        DATEADD(MONTH, n, '2007-01-01') AS dt
+    FROM 
+        numbers
+)
+, alert_type_min_max_dates AS (
+    SELECT
+        a.alert_type_internal_id AS alert_type_id,
+        MIN(a.alert_date) AS first_alert,
+        MAX(a.alert_date) AS last_alert
+    FROM 
+        dbo.alerts a
+    JOIN 
+        dbo.acm_md_alert_types t ON a.alert_type_internal_id = t.alert_type_internal_id
+    WHERE 
+        a.alert_date BETWEEN '2007-01-01' AND '2024-06-01'
+        AND a.deleted = 0
+        AND UPPER(t.name) NOT LIKE 'ADHOC%'
+        AND UPPER(t.name) NOT LIKE 'AD HOC%'
+        AND UPPER(t.name) NOT LIKE 'SCHEDULED ALERT%'
+    GROUP BY 
+        a.alert_type_internal_id
+)
+, alert_type_month AS (
+    SELECT 
+        m.dt,
+        t.alert_type_id
+    FROM 
+        months m
+    CROSS JOIN 
+        (SELECT DISTINCT alert_type_id FROM alert_type_min_max_dates) t
+)
+, alert_type_month_count AS (
+    SELECT 
+        atm.dt,
+        atm.alert_type_id,
+        COUNT(a.alert_id) AS cnt
+    FROM 
+        alert_type_month atm
+    LEFT JOIN 
+        dbo.alerts a 
+        ON atm.dt = DATEFROMPARTS(YEAR(a.alert_date), MONTH(a.alert_date), 1) 
+        AND atm.alert_type_id = a.alert_type_internal_id
+    GROUP BY 
+        atm.dt, atm.alert_type_id
+)
+, non_zero_avg AS (
+    SELECT
+        AVG(NULLIF(cnt, 0)) AS non_zero_avg,
+        atm.alert_type_id
+    FROM 
+        alert_type_month_count atm
+    GROUP BY 
+        atm.alert_type_id
+)
+, most_recent_is_zero AS (
+    SELECT
+        alert_type_id
+    FROM 
+        alert_type_month_count
+    WHERE 
+        dt = '2024-06-01'
+        AND cnt = 0
+)
+, last_nonzero AS (
+    SELECT
+        z.alert_type_id,
+        MAX(c.dt) AS last_nonzero_month
+    FROM 
+        most_recent_is_zero z
+    LEFT JOIN 
+        alert_type_month_count c 
+        ON z.alert_type_id = c.alert_type_id 
+        AND c.dt < '2024-06-01' 
+        AND c.cnt > 0
+    GROUP BY 
+        z.alert_type_id
+)
+, num_months_zero AS (
+    SELECT
+        z.alert_type_id,
+        DATEDIFF(MONTH, z.last_nonzero_month, '2024-06-01') AS num_months_with_zero,
+        z.last_nonzero_month
+    FROM 
+        last_nonzero z
+)
+SELECT
+    cnn.dt AS [Date],
+    t.name AS alert_type,
+    t.short_name,
+    t.alert_type_identifier AS alert_type_id,
+    f.frequency,
+    nm.num_months_with_zero,
+    FORMAT(nm.last_nonzero_month, 'yyyy-MMM') AS last_nonzero_month,
+    mm.first_alert,
+    mm.last_alert AS most_recent_alert_date,
+    non_zero_avg.non_zero_avg AS non_zero_avg,
+    cnn.cnt AS [Count]
+FROM 
+    alert_type_min_max_dates mm
+JOIN 
+    alert_type_month_count cnn ON mm.alert_type_id = cnn.alert_type_id
+LEFT JOIN 
+    num_months_zero nm ON mm.alert_type_id = nm.alert_type_id
+LEFT JOIN 
+    dbo.acm_md_alert_types t ON mm.alert_type_id = t.alert_type_identifier
+LEFT JOIN 
+    non_zero_avg ON mm.alert_type_id = non_zero_avg.alert_type_id
+LEFT JOIN 
+    (SELECT DISTINCT alert_type_identifier, frequency FROM spapp.ms_alert_types) f 
+    ON mm.alert_type_id = f.alert_type_identifier
+OPTION (MAXRECURSION 0);
