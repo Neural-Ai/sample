@@ -1,0 +1,37 @@
+import pandas as pd
+from sqlalchemy import create_engine
+
+# Database connection
+engine = create_engine('your_database_connection_string')
+connection = engine.connect().execution_options(stream_results=True)
+
+# SQL query and chunk size
+sql_query = "SELECT * FROM your_table"
+chunk_size = 10000  # Adjust based on your memory constraints
+
+# Output file name
+output_file = 'output.parquet'
+
+try:
+    # Read SQL in chunks
+    chunks = pd.read_sql(sql_query, connection, chunksize=chunk_size)
+
+    # Process chunks and write to parquet
+    for i, chunk in enumerate(chunks):
+        if i == 0:
+            # For the first chunk, create the parquet file
+            chunk.to_parquet(output_file, engine='pyarrow', compression='snappy', index=False)
+        else:
+            # For subsequent chunks, append to the existing file
+            chunk.to_parquet(output_file, engine='pyarrow', compression='snappy', index=False, append=True)
+        
+        print(f"Processed chunk {i+1}")
+
+except Exception as e:
+    print(f"An error occurred: {e}")
+
+finally:
+    # Close the database connection
+    connection.close()
+
+print(f"Data has been successfully written to {output_file}")
